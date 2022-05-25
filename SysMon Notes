@@ -4,8 +4,35 @@ Get-WinEvent @{LogName="Microsoft-Windows-Sysmon/Operational";id=1} | fl | finst
 # After trimming, collect unique SHA1 hashes
 type SHA1_hashes.txt | Get-Unique
 
+
+#Excluding known good processes by hash from being logged.
+# Issues:
+#   Need full control over your environment, otherwise updates that modify the .exe file will break this functionality and cause an influx of false positives
+# Perks:
+#   Allows for stricter application control on what generates logs, LOTS of possibility for detection.
+
 <ProcessCreate onmatch="exclude">
   <Hashes condition="contains">HASHGOESHERE</Hashes>
 </ProcessCreate>
 
+# Alternative is to exclude known good processes by path
+# Issues:
+#    Adversaries can see this in the configuration and will name their .exes accordingly to not generate alerts (Perfect Adversary but something to consider)
+# Perks:
+#    More flexible with updates
+
+<ProcessCreate onmatch="exclude">
+  <Image condition="contains">FULLPATHGOESHERE</Image>
+</ProcessCreate>
+
 ^^^ ONLY USE ABOVE ON KNOWN SAFE SYSTEMS (Use for baselining SysMon config ^^^
+
+# Logging DNS Requests
+# Issues:
+#   Does not include DoH or DoT traffic
+# Perks:
+#   If you're blocking DoT traffic and have an HTTPS proxy that inspects DNS traffic you now have the possibility of 3 detection mechanisms in place for DNS logging
+
+<DnsQuery onmatch="exclude">
+  <Image condition="contains">FULLPATHGOESHERE</Image>
+</DnsQuery>
