@@ -1,0 +1,11 @@
+# Dump ProcessCreate SysMon events and spit out raw SHA1 hashes of the executables (some trimming required)
+Get-WinEvent @{LogName="Microsoft-Windows-Sysmon/Operational";id=1} | fl | finstr "SHA1=" | ?{$_ -match 'SHA1'} |%{($_ -split "=")[1]} > SHA1_hashes.txt
+
+# After trimming, collect unique SHA1 hashes
+type SHA1_hashes.txt | Get-Unique
+
+<ProcessCreate onmatch="exclude">
+  <Hashes condition="contains">HASHGOESHERE</Hashes>
+</ProcessCreate>
+
+^^^ ONLY USE ABOVE ON KNOWN SAFE SYSTEMS (Use for baselining SysMon config ^^^
